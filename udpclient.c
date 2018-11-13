@@ -1,20 +1,12 @@
-/* udp_client.c */ 
+/* sender.c */
 /* Programmed by Adarsh Sethi */
 /* Sept. 13, 2018 */
 
-#include <stdio.h>          /* for standard I/O functions */
-#include <stdlib.h>         /* for exit */
-#include <string.h>         /* for memset, memcpy, and strlen */
-#include <netdb.h>          /* for struct hostent and gethostbyname */
-#include <sys/socket.h>     /* for socket, sendto, and recvfrom */
-#include <netinet/in.h>     /* for sockaddr_in */
-#include <unistd.h>         /* for close */
-
-#define STRING_SIZE 1024
+#include <message.h>
 
 int main(void) {
 
-   int sock_client;  /* Socket used by client */ 
+   int sock_client;  /* Socket used by client */
 
    struct sockaddr_in client_addr;  /* Internet address structure that
                                         stores client address */
