@@ -65,11 +65,11 @@ int main(void) {
                      (struct sockaddr *) &client_addr, &client_addr_len);
      // printf("Received Sentence is: %s\n     with length %d\n\n",
        //                  msg->data, bytes_recd);
-      puts("test");
+      puts(msg->data);
       /* send message */
-      int shsize = sizeof(short);
-     // int seq = msg->seqNum;
-      bytes_sent = sendto(sock_server, &msg->seqNum, shsize, 0,
+      short shsize = sizeof(short);
+      short seq = msg->seqNum;
+      bytes_sent = sendto(sock_server, &seq, shsize, 0,
                (struct sockaddr*) &client_addr, client_addr_len);
    }
 }

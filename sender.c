@@ -25,7 +25,7 @@ int main(void) {
    short ack_num; /* Ack number of our returned message */
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
 
-   message *msg;
+//   message *msg;
 
    /* open a socket */
 
@@ -90,11 +90,12 @@ int main(void) {
 
    /* send message */
 
+   struct message *msg;
    msg = (message *) malloc(sizeof(message));
    msg->count = msg_len;
    msg->seqNum = 1;
    strcpy(msg->data, sentence);
-   bytes_sent = sendto(sock_client, msg, sizeof(msg), 0,
+   bytes_sent = sendto(sock_client, msg, sizeof(message), 0,
             (struct sockaddr *) &server_addr, sizeof (server_addr));
 
    /* get response from server */
