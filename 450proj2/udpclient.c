@@ -1,12 +1,20 @@
-/* sender.c */ 
+/* udp_client.c */ 
 /* Programmed by Adarsh Sethi */
 /* Sept. 13, 2018 */
 
-#include "message.h"
+#include <stdio.h>          /* for standard I/O functions */
+#include <stdlib.h>         /* for exit */
+#include <string.h>         /* for memset, memcpy, and strlen */
+#include <netdb.h>          /* for struct hostent and gethostbyname */
+#include <sys/socket.h>     /* for socket, sendto, and recvfrom */
+#include <netinet/in.h>     /* for sockaddr_in */
+#include <unistd.h>         /* for close */
+
+#define STRING_SIZE 1024
 
 int main(void) {
 
-   int sock_client;  /* Socket used by client */
+   int sock_client;  /* Socket used by client */ 
 
    struct sockaddr_in client_addr;  /* Internet address structure that
                                         stores client address */
@@ -21,12 +29,9 @@ int main(void) {
 
    char sentence[STRING_SIZE];  /* send message */
    char modifiedSentence[STRING_SIZE]; /* receive message */
-   short msg_len;  /* length of message */
-   short ack_num; /* Ack number of our returned message */
+   unsigned int msg_len;  /* length of message */
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
-
-   message *msg;
-
+  
    /* open a socket */
 
    if ((sock_client = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
@@ -70,17 +75,26 @@ int main(void) {
       exit(1);
    }
 
-   if ((server_hp = gethostbyname("cisc450.cis.udel.edu")) == NULL) {
+   /* end of local address initialization and binding */
+
+   /* initialize server address information */
+
+   printf("Enter hostname of server: ");
+   scanf("%s", server_hostname);
+   if ((server_hp = gethostbyname(server_hostname)) == NULL) {
       perror("Client: invalid server hostname\n");
       close(sock_client);
       exit(1);
    }
+   printf("Enter port number for server: ");
+   scanf("%hu", &server_port);
+
    /* Clear server address structure and initialize with server address */
-   memset(&server_addr, 0, sizeof("cisc450.cis.udel.edu"));
+   memset(&server_addr, 0, sizeof(server_addr));
    server_addr.sin_family = AF_INET;
    memcpy((char *)&server_addr.sin_addr, server_hp->h_addr,
                                     server_hp->h_length);
-   server_addr.sin_port = htons(SERV_UDP_PORT);
+   server_addr.sin_port = htons(server_port);
 
    /* user interface */
 
@@ -89,22 +103,17 @@ int main(void) {
    msg_len = strlen(sentence) + 1;
 
    /* send message */
-
-   msg = (message *) malloc(sizeof(message));
-   msg->count = msg_len;
-   msg->seqNum = 1;
-   strcpy(msg->data, sentence);
-   bytes_sent = sendto(sock_client, msg, sizeof(msg), 0,
+  
+   bytes_sent = sendto(sock_client, sentence, msg_len, 0,
             (struct sockaddr *) &server_addr, sizeof (server_addr));
 
    /* get response from server */
-
+  
    printf("Waiting for response from server...\n");
-   int shsize = sizeof(short);
-   bytes_recd = recvfrom(sock_client, &ack_num, shsize, 0,
+   bytes_recd = recvfrom(sock_client, modifiedSentence, STRING_SIZE, 0,
                 (struct sockaddr *) 0, (int *) 0);
    printf("\nThe response from server is:\n");
-   printf("%d\n\n", ack_num);
+   printf("%s\n\n", modifiedSentence);
 
    /* close the socket */
 

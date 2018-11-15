@@ -1,12 +1,26 @@
-/* receiver.c */
+/* udp_server.c */
 /* Programmed by Adarsh Sethi */
-/* Nov. 13, 2018 */
+/* Sept. 13, 2018 */
 
-#include "message.h"
+#include <ctype.h>          /* for toupper */
+#include <stdio.h>          /* for standard I/O functions */
+#include <stdlib.h>         /* for exit */
+#include <string.h>         /* for memset */
+#include <sys/socket.h>     /* for socket, sendto, and recvfrom */
+#include <netinet/in.h>     /* for sockaddr_in */
+#include <unistd.h>         /* for close */
+
+#define STRING_SIZE 1024
+
+/* SERV_UDP_PORT is the port number on which the server listens for
+   incoming messages from clients. You should change this to a different
+   number to prevent conflicts with others in the class. */
+
+#define SERV_UDP_PORT 65100
 
 int main(void) {
 
-   int sock_server;
+   int sock_server;  /* Socket on which server listens to clients */
 
    struct sockaddr_in server_addr;  /* Internet address structure that
                                         stores server address */
@@ -17,12 +31,10 @@ int main(void) {
    unsigned int client_addr_len;  /* Length of client address structure */
 
    char sentence[STRING_SIZE];  /* receive message */
-   short ack; /* send message */
+   char modifiedSentence[STRING_SIZE]; /* send message */
    unsigned int msg_len;  /* length of message */
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
    unsigned int i;  /* temporary loop variable */
-
-   message *msg;
 
    /* open a socket */
 
@@ -57,19 +69,22 @@ int main(void) {
 
    client_addr_len = sizeof (client_addr);
 
-   msg = (message *) malloc(sizeof(message));
-
    for (;;) {
 
-      bytes_recd = recvfrom(sock_server, &msg, sizeof(message), 0,
+      bytes_recd = recvfrom(sock_server, &sentence, STRING_SIZE, 0,
                      (struct sockaddr *) &client_addr, &client_addr_len);
-     // printf("Received Sentence is: %s\n     with length %d\n\n",
-       //                  msg->data, bytes_recd);
-      puts("test");
+      printf("Received Sentence is: %s\n     with length %d\n\n",
+                         sentence, bytes_recd);
+
+      /* prepare the message to send */
+
+      msg_len = bytes_recd;
+      for (i=0; i<msg_len; i++)
+         modifiedSentence[i] = toupper (sentence[i]);
+
       /* send message */
-      int shsize = sizeof(short);
-     // int seq = msg->seqNum;
-      bytes_sent = sendto(sock_server, &msg->seqNum, shsize, 0,
+ 
+      bytes_sent = sendto(sock_server, modifiedSentence, msg_len, 0,
                (struct sockaddr*) &client_addr, client_addr_len);
    }
 }
