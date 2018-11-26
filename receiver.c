@@ -22,8 +22,6 @@ int main(void) {
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
    unsigned int i;  /* temporary loop variable */
 
-   message *msg;
-
    /* open a socket */
 
    if ((sock_server = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
@@ -57,19 +55,32 @@ int main(void) {
 
    client_addr_len = sizeof (client_addr);
 
-   msg = (message *) malloc(sizeof(message));
+   struct message * msg = malloc(sizeof(struct message));
+   char * line = NULL;
+   FILE *fp;
+   fp = fopen("output.txt", "w");
+   if (!fp) {
+    puts("open error");
+   }
 
    for (;;) {
 
-      bytes_recd = recvfrom(sock_server, &msg, sizeof(message), 0,
+      bytes_recd = recvfrom(sock_server, msg, sizeof(*msg), 0,
                      (struct sockaddr *) &client_addr, &client_addr_len);
-     // printf("Received Sentence is: %s\n     with length %d\n\n",
-       //                  msg->data, bytes_recd);
-      puts(msg->data);
+      printf("Packet %d received with %d data bytes\n\n",
+                        msg->seqNum, bytes_recd);
+      if (!msg->count) {
+        if (fclose(fp) < 0)
+          puts("close error");
+        break;
+      }
+      fputs(msg->data, fp);
+
       /* send message */
       short shsize = sizeof(short);
       short seq = msg->seqNum;
-      bytes_sent = sendto(sock_server, &seq, shsize, 0,
+
+      bytes_sent = sendto(sock_server, &seq, sizeof(short), 0,
                (struct sockaddr*) &client_addr, client_addr_len);
    }
 }

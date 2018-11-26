@@ -1,0 +1,131 @@
+\begin{center}
+{\bf PROGRAMMING PROJECT 2\\ }
+\end{center}
+ING PROJECT 2\\ }
+
+end{center}
+ING PROJECT 2\\ }
+%\vspace{0.3in}
+ PROJECT 2\\ }
+\noindent
+.3in}
+ PROJECT 2\\ }
+
+noindent
+.3in}
+ PROJECT 2\\ }
+In this project, you will implement the Stop-and-Wait protocol to 
+transmit data from a Sender to a Receiver
+op-and-Wait protocol to 
+in the presence of errors and packet loss. The protocol will be 
+ 
+unidirectional in which data is sent in one
+he protocol will be 
+ 
+direction only with acknowledgments being sent in the reverse direction. 
+Only positive ACKs are used. The
+ts being sent in the reverse direction. 
+transmission of packets and ACKs will be done over UDP 
+verse direction. 
+(that represents an unreliable network layer
+ over UDP 
+verse direction. 
+channel) using fixed UDP ports.
+etwork layer
+ over UDP 
+verse direction. 
+
+hannel) using fixed UDP ports.
+etwork layer
+ over UDP 
+verse direction. 
+
+hannel) using fixed UDP ports.
+etwork layer
+ over UDP 
+verse direction. 
+To implement this protocol, you will write two separate
+verse direction. 
+programs called {\em Sender} and {\em Receiver} which
+e
+verse direction. 
+represent the actions to be executed by the sending node and
+ direction. 
+the receiving node respectively. Both the Sender and the
+and
+ direction. 
+Receiver must run on the host {\em cis450.cis.udel.edu},
+and
+ direction. 
+as you will have to come in to my office
+.cis.udel.edu},
+and
+ direction. 
+to give me a demo of your programs. For convenience, 
+},
+and
+ direction. 
+both the hostname and the server port number may
+ce, 
+},
+and
+ direction. 
+be hardcoded into both the Sender and Receiver, 
+ce, 
+},
+and
+ direction. 
+but this should be done in such a way that they should be
+nd
+ direction. 
+easy to change.
+be done in such a way that they should be
+nd
+ direction. 
+
+asy to change.
+be done in such a way that they should be
+nd
+ direction. 
+\begin{verbatim}
+e done in such a way that they should be
+nd
+ direction. 
+    --------------------------------------------------------
+ direction. 
+    |                   Count (2 bytes)                    |
+ direction. 
+    --------------------------------------------------------
+ direction. 
+    |           Packet Sequence Number (2 bytes)           |
+ direction. 
+    --------------------------------------------------------
+ direction. 
+    |                 Data (0 - 80 bytes)                  |
+ direction. 
+    --------------------------------------------------------
+ direction. 
+\end{verbatim}
+---------------------------------------------
+ direction. 
+
+end{verbatim}
+---------------------------------------------
+ direction. 
+The second field of the header is called the
+---------------
+ direction. 
+packet sequence number. Each
+r is called the
+---------------
+ direction. 
+packet transmitted by the Sender is assigned
+---------------
+ direction. 
+a sequence number that alternates between 0 and 1,
+---------
+ direction. 
+in accordance with the Stop-and-Wait protocol.
+ 1,
+---------
+ direction. 

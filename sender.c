@@ -1,4 +1,4 @@
-/* sender.c */ 
+/* sender.c */
 /* Programmed by Adarsh Sethi */
 /* Sept. 13, 2018 */
 
@@ -25,10 +25,15 @@ int main(void) {
    short ack_num; /* Ack number of our returned message */
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
 
-//   message *msg;
+   // Statistics
+   int unique_trans_packs = 0;
+   int unique_trans_data = 0;
+   int total_retrans_packs = 0;
+   int total_trans_packs = 0;
+   int acks = 0;
+   int timeouts = 0;
 
    /* open a socket */
-
    if ((sock_client = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
       perror("Client: can't open datagram socket\n");
       exit(1);
@@ -62,7 +67,6 @@ int main(void) {
    client_addr.sin_port = htons(client_port);
 
    /* bind the socket to the local client port */
-
    if (bind(sock_client, (struct sockaddr *) &client_addr,
                                     sizeof (client_addr)) < 0) {
       perror("Client: can't bind to local address\n");
@@ -75,6 +79,7 @@ int main(void) {
       close(sock_client);
       exit(1);
    }
+
    /* Clear server address structure and initialize with server address */
    memset(&server_addr, 0, sizeof("cisc450.cis.udel.edu"));
    server_addr.sin_family = AF_INET;
@@ -82,32 +87,42 @@ int main(void) {
                                     server_hp->h_length);
    server_addr.sin_port = htons(SERV_UDP_PORT);
 
-   /* user interface */
-
-   printf("Please input a sentence:\n");
-   scanf("%s", sentence);
-   msg_len = strlen(sentence) + 1;
-
-   /* send message */
-
+   /* Build message struct */
    struct message *msg;
    msg = (message *) malloc(sizeof(message));
-   msg->count = msg_len;
-   msg->seqNum = 1;
-   strcpy(msg->data, sentence);
-   bytes_sent = sendto(sock_client, msg, sizeof(message), 0,
+   FILE * fp;
+   char * line = NULL;
+   size_t len = 0;
+   ssize_t read;
+   fp = fopen("/usa/sethi/networks/proj2/test1.txt", "r");
+   if (fp == NULL) {
+     puts("read fail");
+     exit(0);
+   }
+
+   short seqNum = 0;
+   /* Loop for sending lines */
+   while ((read = getline(&line, &len, fp)) != -1) {
+     msg->count = read;
+     msg->seqNum = seqNum%2;
+     seqNum++;
+     strcpy(msg->data, line);
+     bytes_sent = sendto(sock_client, msg, 4+read, 0,
             (struct sockaddr *) &server_addr, sizeof (server_addr));
+     printf("Packet %d transmitted with %d data bytes\n\n", msg->seqNum, bytes_sent);
 
-   /* get response from server */
-
-   printf("Waiting for response from server...\n");
-   int shsize = sizeof(short);
-   bytes_recd = recvfrom(sock_client, &ack_num, shsize, 0,
+     /* get response from server */
+     int shsize = sizeof(short);
+     bytes_recd = recvfrom(sock_client, &ack_num, shsize, 0,
                 (struct sockaddr *) 0, (int *) 0);
-   printf("\nThe response from server is:\n");
-   printf("%d\n\n", ack_num);
+   }
+
+   msg->seqNum = seqNum%2;
+   // NULL our sentence
+   msg->count = 0;
+   sendto(sock_client, msg, 4, 0,
+         (struct sockaddr *)  &server_addr, sizeof(server_addr));
 
    /* close the socket */
-
    close (sock_client);
 }
