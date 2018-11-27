@@ -9,6 +9,8 @@
 #include <sys/socket.h>     /* for socket, sendto, and recvfrom */
 #include <netinet/in.h>     /* for sockaddr_in */
 #include <unistd.h>         /* for close */
+#include <math.h>	    /* for timeout calculation */
+#include <sys/time.h>
 
 #define STRING_SIZE 1024
 

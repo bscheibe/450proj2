@@ -74,6 +74,7 @@ int main(void) {
           puts("close error");
         break;
       }
+      msg->data[msg->count] = '\0';
       fputs(msg->data, fp);
 
       /* send message */

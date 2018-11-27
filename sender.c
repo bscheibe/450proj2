@@ -4,7 +4,7 @@
 
 #include "message.h"
 
-int main(void) {
+int main(int argc, char** argv) {
 
    int sock_client;  /* Socket used by client */
 
@@ -87,6 +87,16 @@ int main(void) {
                                     server_hp->h_length);
    server_addr.sin_port = htons(SERV_UDP_PORT);
 
+   // Timeout setup
+   struct timeval tv;
+   tv.tv_sec = 0;
+   if ((atoi(argv[1]) > 10) || (atoi(argv[1]) < 1)) {
+      puts("Invalid timeout.");
+      return(0);
+   }
+   tv.tv_usec = pow(10,atoi(argv[1]));
+   //setsockopt(sock_client, SOL_SOCKET, SO_RCVTIMEO, &tv,sizeof(tv));
+
    /* Build message struct */
    struct message *msg;
    msg = (message *) malloc(sizeof(message));
@@ -107,14 +117,16 @@ int main(void) {
      msg->seqNum = seqNum%2;
      seqNum++;
      strcpy(msg->data, line);
-     bytes_sent = sendto(sock_client, msg, 4+read, 0,
-            (struct sockaddr *) &server_addr, sizeof (server_addr));
-     printf("Packet %d transmitted with %d data bytes\n\n", msg->seqNum, bytes_sent);
 
      /* get response from server */
      int shsize = sizeof(short);
-     bytes_recd = recvfrom(sock_client, &ack_num, shsize, 0,
+     do {
+       bytes_sent = sendto(sock_client, msg, 4+strlen(line), 0,
+            (struct sockaddr *) &server_addr, sizeof (server_addr));
+       printf("Packet %d transmitted with %d data bytes\n\n", msg->seqNum, bytes_sent);
+       bytes_recd = recvfrom(sock_client, &ack_num, shsize, 0,
                 (struct sockaddr *) 0, (int *) 0);
+     } while (bytes_recd < 0);
    }
 
    msg->seqNum = seqNum%2;
