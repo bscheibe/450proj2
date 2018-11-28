@@ -90,6 +90,11 @@ int main(int argc, char** argv) {
    // Timeout setup
    struct timeval tv;
    tv.tv_sec = 0;
+
+   if (!argv[1]) {
+   puts("Need an input!");
+   return(0);
+   }
    if ((atoi(argv[1]) > 10) || (atoi(argv[1]) < 1)) {
       puts("Invalid timeout.");
       return(0);
@@ -126,7 +131,7 @@ int main(int argc, char** argv) {
        printf("Packet %d transmitted with %d data bytes\n\n", msg->seqNum, bytes_sent);
        bytes_recd = recvfrom(sock_client, &ack_num, shsize, 0,
                 (struct sockaddr *) 0, (int *) 0);
-     } while (bytes_recd < 0);
+     } while (bytes_recd <= 0);
    }
 
    msg->seqNum = seqNum%2;
