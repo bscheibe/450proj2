@@ -125,20 +125,31 @@ int main(int argc, char** argv) {
 
      /* get response from server */
      int shsize = sizeof(short);
-     do {
-       bytes_sent = sendto(sock_client, msg, 4+strlen(line), 0,
+     bytes_sent = sendto(sock_client, msg, 4+strlen(line), 0,
             (struct sockaddr *) &server_addr, sizeof (server_addr));
        printf("Packet %d transmitted with %d data bytes\n\n", msg->seqNum, bytes_sent);
        bytes_recd = recvfrom(sock_client, &ack_num, shsize, 0,
                 (struct sockaddr *) 0, (int *) 0);
-     } while (bytes_recd <= 0);
+
+     // Handle timeout
+     while (bytes_recd <= 0) {
+       printf("Timeout expired for packet numbered %d\n\n", msg->seqNum);
+       bytes_sent = sendto(sock_client, msg, 4+strlen(line), 0,
+            (struct sockaddr *) &server_addr, sizeof (server_addr));
+       printf("Packet %d retransmitted with %d data bytes\n\n", msg->seqNum, bytes_sent);
+       bytes_recd = recvfrom(sock_client, &ack_num, shsize, 0,
+                (struct sockaddr *) 0, (int *) 0);
+     }
+     printf("ACK %d received.\n\n", ack_num);
    }
 
-   msg->seqNum = seqNum%2;
    // NULL our sentence
+   msg->seqNum = seqNum%2;
    msg->count = 0;
-   sendto(sock_client, msg, 4, 0,
+   bytes_sent = sendto(sock_client, msg, 4, 0,
          (struct sockaddr *)  &server_addr, sizeof(server_addr));
+   printf("End of Transmission Packet with sequence number %d transmitted with %d data bytes\n",
+	msg->seqNum, bytes_sent);
 
    /* close the socket */
    close (sock_client);
