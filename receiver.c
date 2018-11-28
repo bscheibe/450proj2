@@ -4,9 +4,11 @@
 
 #include "message.h"
 
-int main(void) {
+int main(int argc, char** argv) {
 
    int sock_server;
+
+   short seq = 0;
 
    struct sockaddr_in server_addr;  /* Internet address structure that
                                         stores server address */
@@ -21,6 +23,17 @@ int main(void) {
    unsigned int msg_len;  /* length of message */
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
    unsigned int i;  /* temporary loop variable */
+
+   // Set up inputs
+   if (!argv[1] || !argv[2]) {
+     puts("Must give two numbers between 0 and 1!");
+     return(0);
+   }
+   if (atoi(argv[1]) < 0  || atoi(argv[1]) > 1 ||
+	atoi(argv[2]) < 0  || atoi(argv[2]) > 1) {
+     puts("Please enter numbers between 0 and 1: \n");
+     return(0);
+   }
 
    /* open a socket */
 
@@ -65,23 +78,63 @@ int main(void) {
 
    for (;;) {
 
+      // Receive message
       bytes_recd = recvfrom(sock_server, msg, sizeof(*msg), 0,
                      (struct sockaddr *) &client_addr, &client_addr_len);
+
+      // Simulate packet loss
+      if (!packet_loss(argv[1])) {
+        continue;
+      }
       printf("Packet %d received with %d data bytes\n\n",
                         msg->seqNum, bytes_recd);
+
+      // Duplicate packet.
+      if (msg->seqNum != seq) {
+        continue;
+      }
+
+      // Handle final packet
       if (!msg->count) {
         if (fclose(fp) < 0)
           puts("close error");
         break;
       }
+
       msg->data[msg->count] = '\0';
       fputs(msg->data, fp);
 
       /* send message */
       short shsize = sizeof(short);
-      short seq = msg->seqNum;
-
+      seq = msg->seqNum;
       bytes_sent = sendto(sock_server, &seq, sizeof(short), 0,
                (struct sockaddr*) &client_addr, client_addr_len);
+      seq = (seq+1)%2;
+
+     // Simulate ACK loss
+     if (!ack_loss(argv[2])) {
+       continue;
+     }
    }
 }
+
+int packet_loss(double packet_loss_rate)
+{
+  double x = rand() / (RAND_MAX +1. );
+  if ( x < packet_loss_rate) {
+    return 0;
+  } else {
+    return  1;
+  }
+}
+
+int ack_loss(double ack_loss_rate)
+{
+  double x = rand() / (RAND_MAX +1. );
+  if ( x < ack_loss_rate) {
+    return 0;
+  } else {
+    return  1;
+  }
+}
+
