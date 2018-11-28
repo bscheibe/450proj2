@@ -84,6 +84,7 @@ int main(int argc, char** argv) {
 
       // Simulate packet loss
       if (!packet_loss(argv[1])) {
+	printf("Packet %d lost\n\n", msg->seqNum);
         continue;
       }
       printf("Packet %d received with %d data bytes\n\n",
@@ -91,6 +92,7 @@ int main(int argc, char** argv) {
 
       // Duplicate packet.
       if (msg->seqNum != seq) {
+	printf("Duplicate packet %d receieved with %d data bytes\n\n", msg->seqNum, bytes_recd);
         continue;
       }
 
@@ -99,6 +101,9 @@ int main(int argc, char** argv) {
         if (fclose(fp) < 0)
           puts("close error");
         break;
+      }
+      else {
+	printf("End of Transmission Packet with Sequence Number %d received with %d data bytes\n\n", msg->seqNum, bytes_recd );
       }
 
       msg->data[msg->count] = '\0';
@@ -113,9 +118,14 @@ int main(int argc, char** argv) {
 
      // Simulate ACK loss
      if (!ack_loss(argv[2])) {
+	printf("ACK %d Lost\n\n", seq);  
        continue;
      }
+     else {
+	printf ("ACK %d Transmitted\n\n", seq);
    }
+ }
+
 }
 
 int packet_loss(double packet_loss_rate)
