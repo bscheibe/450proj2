@@ -91,7 +91,6 @@ int main(int argc, char** argv) {
    // Timeout setup
    struct timeval tv;
    tv.tv_sec = 0;
-
    if (!argv[1]) {
    puts("Need an input!");
    return(0);
@@ -100,7 +99,11 @@ int main(int argc, char** argv) {
       puts("Invalid timeout. Give a number between 1 and 10.");
       return(0);
    }
-   tv.tv_usec = pow(10,atoi(argv[1]));
+   if (atoi(argv[1] > 5) {
+     tv.tv_sec = pow(10,atoi(argv[1]) - 6);
+   } else {
+      tv.tv_usec = pow(10,atoi(argv[1]));
+   }	   
    setsockopt(sock_client, SOL_SOCKET, SO_RCVTIMEO, &tv,sizeof(tv));
 
    /* Build message struct */
@@ -149,7 +152,7 @@ int main(int argc, char** argv) {
      acks++;
    }
 
-   // NULL our sentence
+   // NULL our sentence and send
    msg->seqNum = seqNum%2;
    msg->count = 0;
    bytes_recd = 0;
@@ -163,6 +166,7 @@ int main(int argc, char** argv) {
    printf("End of Transmission Packet with sequence number %d transmitted with %d data bytes\n\n",
 	msg->seqNum, bytes_sent);
 
+   // Print statistics
    total_trans_packs = unique_trans_packs + total_retrans_packs;
    printf("Number of data packets transmitted (initial transmission only): %d\n", unique_trans_packs);
    printf("Total number of data bytes transmitted (Initial trans): %d\n", unique_trans_data);
