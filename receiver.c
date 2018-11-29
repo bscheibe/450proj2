@@ -24,13 +24,23 @@ int main(int argc, char** argv) {
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
    unsigned int i;  /* temporary loop variable */
 
+   // Statistics
+   int succ_packs = 0;
+   int delivered_bytes = 0;
+   int dup_packs = 0;
+   int lost_packs = 0;
+   int total_packs = 0;
+   int succ_acks = 0;
+   int lost_acks = 0;
+   int total_acks = 0;
+
    // Set up inputs
    if (!argv[1] || !argv[2]) {
      puts("Must give two numbers between 0 and 1!");
      return(0);
    }
-   if (atoi(argv[1]) < 0  || atoi(argv[1]) > 1 ||
-	atoi(argv[2]) < 0  || atoi(argv[2]) > 1) {
+   if (atof(argv[1]) < 0  || atof(argv[1]) > 1 ||
+	atof(argv[2]) < 0  || atof(argv[2]) > 1) {
      puts("Please enter numbers between 0 and 1: \n");
      return(0);
    }
@@ -83,16 +93,21 @@ int main(int argc, char** argv) {
                      (struct sockaddr *) &client_addr, &client_addr_len);
 
       // Simulate packet loss
-      if (!packet_loss(argv[1])) {
+      if (!packet_loss(atof(argv[1]))) {
+        lost_packs++;
 	printf("Packet %d lost\n\n", msg->seqNum);
         continue;
       }
       printf("Packet %d received with %d data bytes\n\n",
                         msg->seqNum, bytes_recd);
+      succ_packs++;
 
       // Duplicate packet.
       if (msg->seqNum != seq) {
 	printf("Duplicate packet %d receieved with %d data bytes\n\n", msg->seqNum, bytes_recd);
+        sendto(sock_server, &msg->seqNum, sizeof(short), 0,
+               (struct sockaddr*) &client_addr, client_addr_len);
+        dup_packs++;
         continue;
       }
 
@@ -100,14 +115,26 @@ int main(int argc, char** argv) {
       if (!msg->count) {
         if (fclose(fp) < 0)
           puts("close error");
-        break;
-      }
-      else {
+        sendto(sock_server, &msg->seqNum, sizeof(short), 0,
+               (struct sockaddr*) &client_addr, client_addr_len);
 	printf("End of Transmission Packet with Sequence Number %d received with %d data bytes\n\n", msg->seqNum, bytes_recd );
+        break;
       }
 
       msg->data[msg->count] = '\0';
       fputs(msg->data, fp);
+      delivered_bytes += msg->count;
+
+      // Simulate ACK loss
+      if (!ack_loss(atof(argv[2]))) {
+        printf("ACK %d Lost\n\n", seq);
+        lost_acks++;
+        seq = (seq+1)%2;
+        continue;
+      }
+      else {
+        printf ("ACK %d Transmitted\n\n", seq);
+      }
 
       /* send message */
       short shsize = sizeof(short);
@@ -115,22 +142,25 @@ int main(int argc, char** argv) {
       bytes_sent = sendto(sock_server, &seq, sizeof(short), 0,
                (struct sockaddr*) &client_addr, client_addr_len);
       seq = (seq+1)%2;
-
-     // Simulate ACK loss
-     if (!ack_loss(argv[2])) {
-	printf("ACK %d Lost\n\n", seq);  
-       continue;
-     }
-     else {
-	printf ("ACK %d Transmitted\n\n", seq);
-   }
+      succ_acks++;
  }
+ total_packs = succ_packs + dup_packs + lost_packs;
+ total_acks = succ_acks + lost_acks;
 
+  printf("Number of data packets received successfully: %d\n", succ_packs);
+  printf("Total number of data bytes received which are delivered to user: %d\n", delivered_bytes);
+  printf("Total number of duplicate packets received: %d\n", dup_packs);
+  printf("Number of data packets received but dropped due to loss: %d\n", lost_packs);
+  printf("Total number of data packets received: %d\n", total_packs);
+  printf("Number of ACKs transmitted without loss: %d\n", succ_acks);
+  printf("Number of ACKs generated but dropped due to loss: %d\n", lost_acks);
+  printf("Total number of ACKs generated: %d\n", total_acks);
 }
 
 int packet_loss(double packet_loss_rate)
 {
   double x = rand() / (RAND_MAX +1. );
+  printf("/ %G %G / \n", x, packet_loss_rate);
   if ( x < packet_loss_rate) {
     return 0;
   } else {

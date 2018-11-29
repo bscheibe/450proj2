@@ -96,11 +96,11 @@ int main(int argc, char** argv) {
    return(0);
    }
    if ((atoi(argv[1]) > 10) || (atoi(argv[1]) < 1)) {
-      puts("Invalid timeout.");
+      puts("Invalid timeout. Give a number between 1 and 10.");
       return(0);
    }
    tv.tv_usec = pow(10,atoi(argv[1]));
-   //setsockopt(sock_client, SOL_SOCKET, SO_RCVTIMEO, &tv,sizeof(tv));
+   setsockopt(sock_client, SOL_SOCKET, SO_RCVTIMEO, &tv,sizeof(tv));
 
    /* Build message struct */
    struct message *msg;
@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
    char * line = NULL;
    size_t len = 0;
    ssize_t read;
-   fp = fopen("/usa/sethi/networks/proj2/test1.txt", "r");
+   fp = fopen("input.txt", "r");
    if (fp == NULL) {
      puts("read fail");
      exit(0);
@@ -127,29 +127,48 @@ int main(int argc, char** argv) {
      int shsize = sizeof(short);
      bytes_sent = sendto(sock_client, msg, 4+strlen(line), 0,
             (struct sockaddr *) &server_addr, sizeof (server_addr));
-       printf("Packet %d transmitted with %d data bytes\n\n", msg->seqNum, bytes_sent);
-       bytes_recd = recvfrom(sock_client, &ack_num, shsize, 0,
+     printf("Packet %d transmitted with %d data bytes\n\n", msg->seqNum, bytes_sent);
+     unique_trans_packs++;
+     bytes_recd = recvfrom(sock_client, &ack_num, shsize, 0,
                 (struct sockaddr *) 0, (int *) 0);
+     unique_trans_data += bytes_sent;
 
      // Handle timeout
      while (bytes_recd <= 0) {
        printf("Timeout expired for packet numbered %d\n\n", msg->seqNum);
+       timeouts++;
        bytes_sent = sendto(sock_client, msg, 4+strlen(line), 0,
             (struct sockaddr *) &server_addr, sizeof (server_addr));
        printf("Packet %d retransmitted with %d data bytes\n\n", msg->seqNum, bytes_sent);
+       total_retrans_packs++;
        bytes_recd = recvfrom(sock_client, &ack_num, shsize, 0,
                 (struct sockaddr *) 0, (int *) 0);
      }
      printf("ACK %d received.\n\n", ack_num);
+     acks++;
    }
 
    // NULL our sentence
    msg->seqNum = seqNum%2;
    msg->count = 0;
-   bytes_sent = sendto(sock_client, msg, 4, 0,
+   bytes_recd = 0;
+   int shsize = sizeof(short);
+   while (bytes_recd <= 0) {
+     bytes_sent = sendto(sock_client, msg, 4, 0,
          (struct sockaddr *)  &server_addr, sizeof(server_addr));
-   printf("End of Transmission Packet with sequence number %d transmitted with %d data bytes\n",
+     bytes_recd = recvfrom(sock_client, &ack_num, shsize, 0,
+                (struct sockaddr *) 0, (int *) 0);
+   }
+   printf("End of Transmission Packet with sequence number %d transmitted with %d data bytes\n\n",
 	msg->seqNum, bytes_sent);
+
+   total_trans_packs = unique_trans_packs + total_retrans_packs;
+   printf("Number of data packets transmitted (initial transmission only): %d\n", unique_trans_packs);
+   printf("Total number of data bytes transmitted (Initial trans): %d\n", unique_trans_data);
+   printf("Total number of retransmissions: %d\n", total_retrans_packs);
+   printf("Total number of data packets transmitted: %d\n", total_trans_packs);
+   printf("Number of ACKs received: %d\n", acks);
+   printf("Count of how many times timeout expired: %d\n", timeouts);
 
    /* close the socket */
    close (sock_client);
