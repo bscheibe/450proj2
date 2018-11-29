@@ -113,9 +113,9 @@ int main(int argc, char** argv) {
 
       // Handle final packet
       if (!msg->count) {
-        if (fclose(fp) < 0)
-          puts("close error");
-        sendto(sock_server, &msg->seqNum, sizeof(short), 0,
+//        if (fclose(fp) < 0)
+  //        puts("close error");
+        sendto(sock_server, &seq, sizeof(short), 0,
                (struct sockaddr*) &client_addr, client_addr_len);
 	printf("End of Transmission Packet with Sequence Number %d received with %d data bytes\n\n", msg->seqNum, bytes_recd );
         break;
