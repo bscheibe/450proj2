@@ -160,7 +160,6 @@ int main(int argc, char** argv) {
 int packet_loss(double packet_loss_rate)
 {
   double x = rand() / (RAND_MAX +1. );
-  printf("/ %G %G / \n", x, packet_loss_rate);
   if ( x < packet_loss_rate) {
     return 0;
   } else {
