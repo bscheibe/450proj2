@@ -91,6 +91,7 @@ int main(int argc, char** argv) {
    // Timeout setup
    struct timeval tv;
    tv.tv_sec = 0;
+   tv.tv_usec = 0;
    if (!argv[1]) {
    puts("Need an input!");
    return(0);
@@ -99,11 +100,11 @@ int main(int argc, char** argv) {
       puts("Invalid timeout. Give a number between 1 and 10.");
       return(0);
    }
-   if (atoi(argv[1] > 5) {
+   if (atoi(argv[1]) > 5) {
      tv.tv_sec = pow(10,atoi(argv[1]) - 6);
    } else {
       tv.tv_usec = pow(10,atoi(argv[1]));
-   }	   
+   }
    setsockopt(sock_client, SOL_SOCKET, SO_RCVTIMEO, &tv,sizeof(tv));
 
    /* Build message struct */
