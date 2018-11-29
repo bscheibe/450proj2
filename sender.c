@@ -2,6 +2,7 @@
 /* Programmed by Adarsh Sethi */
 /* Sept. 13, 2018 */
 
+
 #include "message.h"
 
 int main(int argc, char** argv) {
@@ -106,7 +107,7 @@ int main(int argc, char** argv) {
    struct message *msg;
    msg = (message *) malloc(sizeof(message));
    FILE * fp;
-   char * line = NULL;
+   char line[80];
    size_t len = 0;
    ssize_t read;
    fp = fopen("input.txt", "r");
@@ -117,8 +118,8 @@ int main(int argc, char** argv) {
 
    short seqNum = 0;
    /* Loop for sending lines */
-   while ((read = getline(&line, &len, fp)) != -1) {
-     msg->count = read;
+   while (fgets(line, sizeof(line), fp)) {
+     msg->count = strlen(line);
      msg->seqNum = seqNum%2;
      seqNum++;
      strcpy(msg->data, line);
