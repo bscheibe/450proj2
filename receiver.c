@@ -1,5 +1,6 @@
 /* receiver.c */
 /* Programmed by Adarsh Sethi */
+/* Extended to completion by Bruce Scheibe */
 /* Nov. 13, 2018 */
 
 #include "message.h"
