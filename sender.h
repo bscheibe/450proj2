@@ -1,5 +1,6 @@
 /* sender.h */
 /* Programmed by Adarsh Sethi */
+/* Extended by Bruce Scheibe */
 /* Nov. 13, 2018 */
 
 #include <stdio.h>          /* for standard I/O functions */
